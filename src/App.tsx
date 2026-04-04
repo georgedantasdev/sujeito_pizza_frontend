@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { ModalProvider } from '@/contexts/ModalContext'
 import { Router } from '@/routes'
 
 const queryClient = new QueryClient({
@@ -19,12 +19,9 @@ export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
-        <Toaster
-          position="top-right"
-          richColors
-          toastOptions={{ duration: 3000 }}
-        />
+        <ModalProvider>
+          <Router />
+        </ModalProvider>
       </AuthProvider>
     </QueryClientProvider>
   )

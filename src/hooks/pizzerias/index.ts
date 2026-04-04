@@ -1,14 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import api from '@/services/api'
 import { getErrorMessage } from '@/utils/getErrorMessage'
-import type { ApiResponse, CreatePizzeriaData, Pizzeria } from '@/types'
+import { useModal } from '@/contexts/ModalContext'
+import type { ApiResponse } from '@/types'
+import { pizzeriaKeys } from './types'
+import type { CreatePizzeriaData, Pizzeria } from './types'
 
-// ─── Query keys ──────────────────────────────────────────────────────
-export const pizzeriaKeys = {
-  all: ['pizzerias'] as const,
-  detail: (id: string) => ['pizzerias', id] as const,
-}
+export * from './types'
 
 // ─── Queries ─────────────────────────────────────────────────────────
 export function usePizzerias() {
@@ -35,46 +33,65 @@ export function usePizzeria(id: string) {
 // ─── Mutations ───────────────────────────────────────────────────────
 export function useCreatePizzeria() {
   const queryClient = useQueryClient()
+  const modal = useModal()
 
   return useMutation({
     mutationFn: (dto: CreatePizzeriaData) => api.post('/pizzerias', dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: pizzeriaKeys.all })
-      toast.success('Pizzaria cadastrada com sucesso!')
+      modal.success({ title: 'Pizzaria cadastrada com sucesso!' })
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, 'Erro ao cadastrar pizzaria.'))
+      modal.error({ title: 'Erro ao cadastrar pizzaria', description: getErrorMessage(error) })
     },
   })
 }
 
 export function useUpdatePizzeria(id: string) {
   const queryClient = useQueryClient()
+  const modal = useModal()
 
   return useMutation({
     mutationFn: (name: string) =>
       api.put<ApiResponse<Pizzeria>>(`/pizzerias/${id}`, { name }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: pizzeriaKeys.detail(id) })
-      toast.success('Pizzaria atualizada com sucesso!')
+      modal.success({ title: 'Pizzaria atualizada com sucesso!' })
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, 'Erro ao atualizar pizzaria.'))
+      modal.error({ title: 'Erro ao atualizar pizzaria', description: getErrorMessage(error) })
     },
   })
 }
 
 export function useDeletePizzeria() {
   const queryClient = useQueryClient()
+  const modal = useModal()
 
   return useMutation({
     mutationFn: (id: string) => api.delete(`/pizzerias/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: pizzeriaKeys.all })
-      toast.success('Pizzaria removida com sucesso!')
+      modal.success({ title: 'Pizzaria desativada com sucesso!' })
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, 'Erro ao remover pizzaria.'))
+      modal.error({ title: 'Erro ao desativar pizzaria', description: getErrorMessage(error) })
+    },
+  })
+}
+
+export function useActivatePizzeria() {
+  const queryClient = useQueryClient()
+  const modal = useModal()
+
+  return useMutation({
+    mutationFn: (id: string) => api.patch(`/pizzerias/${id}/activate`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: pizzeriaKeys.all })
+      modal.success({ title: 'Pizzaria ativada com sucesso!' })
+    },
+    onError: (error) => {
+      modal.error({ title: 'Erro ao ativar pizzaria', description: getErrorMessage(error) })
     },
   })
 }

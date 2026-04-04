@@ -4,8 +4,8 @@ import { ChevronLeft } from 'lucide-react'
 import { useState } from 'react'
 import { Input } from '@/components/Input'
 import { Button } from '@/components/Button'
-import { useCreatePizzeria } from '@/hooks/usePizzerias'
-import type { CreatePizzeriaData } from '@/types'
+import { useCreatePizzeria } from '@/hooks/pizzerias'
+import type { CreatePizzeriaData } from '@/hooks/pizzerias'
 
 function formatCnpj(raw: string) {
   return raw
@@ -54,8 +54,8 @@ export function NovaPizzeria() {
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
+    <div className="p-4 sm:p-8">
+      <div className="mb-6">
         <Link
           to="/pizzerias"
           className="mb-4 inline-flex items-center gap-1 text-sm text-white/50 transition-colors hover:text-white"

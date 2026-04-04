@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { ChevronLeft, Pencil, Check, X } from 'lucide-react'
 import { Input } from '@/components/Input'
 import { Button } from '@/components/Button'
-import { usePizzeria, useUpdatePizzeria } from '@/hooks/usePizzerias'
+import { usePizzeria, useUpdatePizzeria } from '@/hooks/pizzerias'
 
 interface EditForm {
   name: string
@@ -30,7 +30,7 @@ export function DetalhesPizzeria() {
 
   if (isLoading) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         <div className="max-w-lg space-y-3">
           <div className="h-6 w-32 animate-pulse rounded bg-dark-100" />
           <div className="h-40 animate-pulse rounded-xl bg-dark-100" />
@@ -41,7 +41,7 @@ export function DetalhesPizzeria() {
 
   if (isError || !pizzeria) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         <p className="text-red-400">Pizzaria não encontrada.</p>
         <Link to="/pizzerias" className="mt-4 inline-block text-sm text-white/50 hover:text-white">
           Voltar
@@ -51,7 +51,7 @@ export function DetalhesPizzeria() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <Link
         to="/pizzerias"
         className="mb-6 inline-flex items-center gap-1 text-sm text-white/50 transition-colors hover:text-white"
