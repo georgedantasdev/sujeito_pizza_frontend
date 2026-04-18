@@ -25,7 +25,9 @@ export function Login() {
   async function onSubmit({ email, password }: LoginFormData) {
     try {
       const role = await signIn(email, password)
-      navigate(role === 'SUPER_ADMIN' ? '/pizzerias' : '/admin')
+      if (role === 'SUPER_ADMIN') navigate('/pizzerias')
+      else if (role === 'EMPLOYEE') navigate('/admin/pedidos')
+      else navigate('/admin')
     } catch (err: unknown) {
       // Exibe o erro diretamente no campo raiz do formulário — persiste
       // até o usuário tentar novamente, sem desaparecer
@@ -39,7 +41,7 @@ export function Login() {
     <div className="flex min-h-screen items-center justify-center bg-dark px-4">
       <div className="w-full max-w-sm">
         <div className="mb-10 flex justify-center">
-          <Logo className="h-10 w-auto" />
+          <Logo className="h-52 w-auto" />
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">

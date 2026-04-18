@@ -4,7 +4,7 @@ import { getErrorMessage } from '@/utils/getErrorMessage'
 import { useModal } from '@/contexts/ModalContext'
 import type { ApiResponse } from '@/types'
 import { userKeys } from './types'
-import type { AdminUser, CreateAdminData, CreateUserData, User } from './types'
+import type { AdminUser, CreateAdminData, CreateUserData, UpdateUserData, User } from './types'
 
 export * from './types'
 
@@ -54,6 +54,23 @@ export function useCreateUser() {
     },
     onError: (error) => {
       modal.error({ title: 'Erro ao cadastrar funcionário', description: getErrorMessage(error) })
+    },
+  })
+}
+
+export function useUpdateUser(id: string) {
+  const queryClient = useQueryClient()
+  const modal = useModal()
+
+  return useMutation({
+    mutationFn: (dto: UpdateUserData) =>
+      api.put<ApiResponse<User>>(`/users/${id}`, dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.all })
+      modal.success({ title: 'Funcionário atualizado com sucesso!' })
+    },
+    onError: (error) => {
+      modal.error({ title: 'Erro ao atualizar funcionário', description: getErrorMessage(error) })
     },
   })
 }

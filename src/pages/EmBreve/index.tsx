@@ -17,7 +17,7 @@ export function EmBreve() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-dark px-4">
       <div className="w-full max-w-md text-center">
         <div className="mb-10 flex justify-center">
-          <Logo className="h-10 w-auto" />
+          <Logo className="h-40 w-auto" variant="icon" />
         </div>
 
         <div className="mb-6 flex justify-center">

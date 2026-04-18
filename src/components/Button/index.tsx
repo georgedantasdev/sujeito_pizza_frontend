@@ -30,13 +30,17 @@ export function Button({
   return (
     <button
       disabled={isLoading || disabled}
-      className={`inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`relative inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${sizes[size]} ${className}`}
       {...rest}
     >
       {isLoading ? (
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        <>
+          <span className="absolute h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          {/* Hidden copy keeps button size stable during loading */}
+          <span className="invisible flex items-center gap-2">{children}</span>
+        </>
       ) : (
-        children
+        <>{children}</>
       )}
     </button>
   )

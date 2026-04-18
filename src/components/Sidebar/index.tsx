@@ -1,18 +1,31 @@
-import { LayoutDashboard, LogOut, Pizza, ShoppingBag, Store, Table2, Users, X } from 'lucide-react'
+import { Bike, Home, LayoutDashboard, LogOut, Pizza, Store, Table2, Users, X } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Logo } from '@/components/Logo'
 import { useAuth } from '@/contexts/AuthContext'
 
-const superAdminNav = [
+interface NavItem {
+  to: string
+  label: string
+  icon: React.ElementType
+  end?: boolean
+}
+
+const superAdminNav: NavItem[] = [
   { to: '/pizzerias', label: 'Pizzarias', icon: Store },
 ]
 
-const adminNav = [
+const adminNav: NavItem[] = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/admin/pedidos', label: 'Pedidos', icon: ShoppingBag },
-  { to: '/admin/produtos', label: 'Produtos', icon: Pizza },
   { to: '/admin/mesas', label: 'Mesas', icon: Table2 },
+  { to: '/admin/delivery', label: 'Delivery', icon: Bike },
+  { to: '/admin/produtos', label: 'Produtos', icon: Pizza },
   { to: '/admin/funcionarios', label: 'Funcionários', icon: Users },
+]
+
+const employeeNav: NavItem[] = [
+  { to: '/home', label: 'Início', icon: Home, end: true },
+  { to: '/mesas', label: 'Mesas', icon: Table2 },
+  { to: '/delivery', label: 'Delivery', icon: Bike },
 ]
 
 interface SidebarProps {
@@ -24,7 +37,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
 
-  const navItems = user?.role === 'ADMIN' ? adminNav : superAdminNav
+  const navItems =
+    user?.role === 'ADMIN'
+      ? adminNav
+      : user?.role === 'EMPLOYEE'
+        ? employeeNav
+        : superAdminNav
 
   function handleSignOut() {
     signOut()
@@ -39,7 +57,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     >
       {/* Logo + close button */}
       <div className="flex items-center justify-between px-6 py-6">
-        <Logo className="h-6 w-auto" />
+        <Logo className="h-20 w-auto" variant="icon" />
         <button
           onClick={onClose}
           className="rounded-md p-1 text-white/40 transition-colors hover:text-white lg:hidden"
@@ -74,7 +92,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       <div className="border-t border-white/10 px-4 py-4">
         <div className="mb-3 truncate">
           <p className="text-xs font-medium text-white/40">
-            {user?.role === 'ADMIN' ? 'Administrador' : 'Super Admin'}
+            {user?.role === 'ADMIN' ? 'Administrador' : user?.role === 'EMPLOYEE' ? 'Funcionário' : 'Super Admin'}
           </p>
           <p className="truncate text-sm text-white/70">{user?.email}</p>
         </div>

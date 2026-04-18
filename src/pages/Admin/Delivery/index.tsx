@@ -2,51 +2,55 @@ import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { Eye, Plus } from 'lucide-react'
 import { Button } from '@/components/Button'
-import { useOrders } from '@/hooks/orders'
-import type { OrderStatus } from '@/hooks/orders'
+import { useDeliveries } from '@/hooks/delivery'
+import type { DeliveryStatus } from '@/hooks/delivery'
 
-const statusOptions: { value: OrderStatus | ''; label: string }[] = [
-  { value: '', label: 'Todos' },
-  { value: 'OPEN', label: 'Abertos' },
-  { value: 'IN_PROGRESS', label: 'Em preparo' },
-  { value: 'READY', label: 'Prontos' },
+const statusOptions: { value: DeliveryStatus | ''; label: string }[] = [
+  { value: '', label: 'Todas' },
+  { value: 'PREPARING', label: 'Em preparo' },
+  { value: 'READY', label: 'Prontas' },
   { value: 'DELIVERED', label: 'Entregues' },
-  { value: 'CANCELLED', label: 'Cancelados' },
+  { value: 'CANCELLED', label: 'Canceladas' },
 ]
 
 const statusLabel: Record<string, string> = {
-  OPEN: 'Aberto',
-  IN_PROGRESS: 'Em preparo',
+  PREPARING: 'Em preparo',
   READY: 'Pronto',
   DELIVERED: 'Entregue',
   CANCELLED: 'Cancelado',
 }
 
 const statusColor: Record<string, string> = {
-  OPEN: 'text-yellow-400 bg-yellow-400/10',
-  IN_PROGRESS: 'text-blue-400 bg-blue-400/10',
+  PREPARING: 'text-yellow-400 bg-yellow-400/10',
   READY: 'text-brand-green bg-brand-green/10',
   DELIVERED: 'text-white/40 bg-white/5',
   CANCELLED: 'text-red-400 bg-red-400/10',
 }
 
-export function AdminPedidos() {
-  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | ''>('')
-  const { data: orders = [], isLoading, isError } = useOrders(selectedStatus || undefined)
+const paymentLabel: Record<string, string> = {
+  CASH: 'Dinheiro',
+  CREDIT_CARD: 'Cartão de crédito',
+  DEBIT_CARD: 'Cartão de débito',
+  PIX: 'PIX',
+}
+
+export function AdminDelivery() {
+  const [selectedStatus, setSelectedStatus] = useState<DeliveryStatus | ''>('')
+  const { data: deliveries = [], isLoading, isError } = useDeliveries(selectedStatus || undefined)
   const location = useLocation()
-  const base = location.pathname.startsWith('/admin') ? '/admin/pedidos' : '/pedidos'
+  const base = location.pathname.startsWith('/admin') ? '/admin/delivery' : '/delivery'
 
   return (
     <div className="p-4 sm:p-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Pedidos</h1>
-          <p className="mt-1 text-sm text-white/50">Acompanhe todos os pedidos da pizzaria</p>
+          <h1 className="text-2xl font-bold text-white">Delivery</h1>
+          <p className="mt-1 text-sm text-white/50">Gerencie as entregas da pizzaria</p>
         </div>
         <Link to={`${base}/novo`}>
           <Button variant="green">
             <Plus size={16} />
-            Novo pedido
+            Nova entrega
           </Button>
         </Link>
       </div>
@@ -56,7 +60,7 @@ export function AdminPedidos() {
         {statusOptions.map((opt) => (
           <button
             key={opt.value}
-            onClick={() => setSelectedStatus(opt.value as OrderStatus | '')}
+            onClick={() => setSelectedStatus(opt.value as DeliveryStatus | '')}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               selectedStatus === opt.value
                 ? 'bg-brand-red text-white'
@@ -70,7 +74,7 @@ export function AdminPedidos() {
 
       {isError && (
         <div className="mb-6 rounded-md bg-red-500/10 px-4 py-3 text-sm text-red-400">
-          Não foi possível carregar os pedidos.
+          Não foi possível carregar as entregas.
         </div>
       )}
 
@@ -80,39 +84,43 @@ export function AdminPedidos() {
             <div key={i} className="h-20 animate-pulse rounded-xl bg-dark-100" />
           ))}
         </div>
-      ) : orders.length === 0 ? (
+      ) : deliveries.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 py-20 text-center">
-          <p className="text-white/40">Nenhum pedido encontrado.</p>
+          <p className="text-white/40">Nenhuma entrega encontrada.</p>
+          <p className="text-xs text-white/30">Clique em "Nova entrega" para começar.</p>
         </div>
       ) : (
         <>
           {/* Mobile: cards */}
-          <div className="space-y-3 sm:hidden">
-            {orders.map((order) => (
-              <Link key={order.id} to={`${base}/${order.id}`}>
+          <div className="flex flex-col gap-4 sm:hidden">
+            {deliveries.map((delivery) => (
+              <Link key={delivery.id} to={`${base}/${delivery.id}`} className="block">
                 <div className="rounded-xl border border-white/10 bg-dark-100 p-4 transition-colors hover:border-white/20 hover:bg-dark-200">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-white">Mesa {order.table.number}</span>
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor[order.status]}`}>
-                          {statusLabel[order.status]}
+                        <span className="font-semibold text-white">{delivery.customerName}</span>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor[delivery.status]}`}>
+                          {statusLabel[delivery.status]}
                         </span>
                       </div>
-                      <p className="mt-1 truncate text-xs text-white/40">{order.user.name}</p>
+                      <p className="mt-1 truncate text-xs text-white/40">{delivery.user.name}</p>
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="font-semibold text-white">
-                        {Number(order.totalPrice).toLocaleString('pt-BR', {
+                        {Number(delivery.totalPrice).toLocaleString('pt-BR', {
                           style: 'currency',
                           currency: 'BRL',
                         })}
+                      </p>
+                      <p className={`mt-0.5 text-xs ${delivery.paidAt ? 'text-brand-green' : 'text-white/30'}`}>
+                        {delivery.paidAt ? paymentLabel[delivery.paymentMethod!] : 'Não pago'}
                       </p>
                     </div>
                   </div>
                   <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-3">
                     <span className="text-xs text-white/30">
-                      {order.items.length} {order.items.length === 1 ? 'item' : 'itens'}
+                      {delivery.items.length} {delivery.items.length === 1 ? 'item' : 'itens'}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-white/40">
                       <Eye size={12} />
@@ -129,38 +137,46 @@ export function AdminPedidos() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/10 bg-dark-100">
-                  <th className="px-6 py-3 text-left font-medium text-white/50">Mesa</th>
+                  <th className="px-6 py-3 text-left font-medium text-white/50">Cliente</th>
                   <th className="px-6 py-3 text-left font-medium text-white/50">Atendente</th>
                   <th className="px-6 py-3 text-left font-medium text-white/50">Itens</th>
                   <th className="px-6 py-3 text-left font-medium text-white/50">Total</th>
                   <th className="px-6 py-3 text-left font-medium text-white/50">Status</th>
+                  <th className="px-6 py-3 text-left font-medium text-white/50">Pagamento</th>
                   <th className="px-6 py-3 text-right font-medium text-white/50">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order, i) => (
+                {deliveries.map((delivery, i) => (
                   <tr
-                    key={order.id}
+                    key={delivery.id}
                     className={`border-b border-white/5 transition-colors hover:bg-white/[0.02] ${
-                      i === orders.length - 1 ? 'border-b-0' : ''
+                      i === deliveries.length - 1 ? 'border-b-0' : ''
                     }`}
                   >
-                    <td className="px-6 py-4 font-medium text-white">Mesa {order.table.number}</td>
-                    <td className="px-6 py-4 text-white/50">{order.user.name}</td>
-                    <td className="px-6 py-4 text-white/50">{order.items.length}</td>
+                    <td className="px-6 py-4 font-medium text-white">{delivery.customerName}</td>
+                    <td className="px-6 py-4 text-white/50">{delivery.user.name}</td>
+                    <td className="px-6 py-4 text-white/50">{delivery.items.length}</td>
                     <td className="px-6 py-4 text-white/70">
-                      {Number(order.totalPrice).toLocaleString('pt-BR', {
+                      {Number(delivery.totalPrice).toLocaleString('pt-BR', {
                         style: 'currency',
                         currency: 'BRL',
                       })}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor[order.status]}`}>
-                        {statusLabel[order.status]}
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor[delivery.status]}`}>
+                        {statusLabel[delivery.status]}
                       </span>
                     </td>
+                    <td className="px-6 py-4">
+                      {delivery.paidAt ? (
+                        <span className="text-xs text-brand-green">{paymentLabel[delivery.paymentMethod!]}</span>
+                      ) : (
+                        <span className="text-xs text-white/30">Não pago</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-right">
-                      <Link to={`${base}/${order.id}`}>
+                      <Link to={`${base}/${delivery.id}`}>
                         <Button variant="ghost" size="sm">
                           <Eye size={14} />
                           Detalhes

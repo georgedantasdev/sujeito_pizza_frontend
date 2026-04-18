@@ -731,5 +731,18 @@
 			</g>
 		</g>
 	</g>
+	<text
+		x="2000"
+		y="3760"
+		text-anchor="middle"
+		font-family="Georgia, 'Times New Roman', serif"
+		font-weight="bold"
+		font-style="italic"
+		font-size="400"
+		fill="#F6C547"
+		stroke="#6C184E"
+		stroke-width="18"
+		paint-order="stroke fill"
+		letter-spacing="20">Pizzaria</text>
 </g>
 </svg>

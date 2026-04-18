@@ -60,6 +60,15 @@ export function ModalProvider({ children }: { children: React.ReactNode }) {
     }
   }, [modal])
 
+  const handleClose = useCallback((value: boolean) => {
+    setIsVisible(false)
+    setTimeout(() => {
+      setModal(null)
+      resolveRef.current?.(value)
+      resolveRef.current = null
+    }, 200)
+  }, [])
+
   // Keyboard: Escape to cancel
   useEffect(() => {
     if (!modal) return
@@ -68,16 +77,7 @@ export function ModalProvider({ children }: { children: React.ReactNode }) {
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [modal])
-
-  function handleClose(value: boolean) {
-    setIsVisible(false)
-    setTimeout(() => {
-      setModal(null)
-      resolveRef.current?.(value)
-      resolveRef.current = null
-    }, 200)
-  }
+  }, [modal, handleClose])
 
   const confirm = useCallback((options: ConfirmOptions): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -154,7 +154,7 @@ function ModalView({ modal, isVisible, onClose }: ModalViewProps) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
-      className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4"
     >
       {/* Backdrop */}
       <div
@@ -165,7 +165,7 @@ function ModalView({ modal, isVisible, onClose }: ModalViewProps) {
 
       {/* Card */}
       <div
-        className="relative w-full max-w-md rounded-xl border border-white/10 bg-dark-100 p-6 shadow-2xl transition-all duration-200"
+        className="relative w-full max-w-md rounded-t-2xl border border-white/10 bg-dark-100 p-6 shadow-2xl transition-all duration-200 sm:rounded-xl"
         style={{
           opacity: isVisible ? 1 : 0,
           transform: isVisible
@@ -206,13 +206,13 @@ function ModalView({ modal, isVisible, onClose }: ModalViewProps) {
           <div className="flex gap-3">
             <button
               onClick={() => onClose(false)}
-              className="flex-1 rounded-md bg-white/5 px-4 py-2.5 text-sm font-medium text-white/70 ring-1 ring-white/10 transition-colors hover:bg-white/10 hover:text-white"
+              className="flex-1 rounded-md bg-white/5 px-4 py-3 text-sm font-medium text-white/70 ring-1 ring-white/10 transition-colors hover:bg-white/10 hover:text-white"
             >
               {confirmOpts.cancelLabel ?? 'Cancelar'}
             </button>
             <button
               onClick={() => onClose(true)}
-              className={`flex-1 rounded-md px-4 py-2.5 text-sm font-medium transition-colors ${
+              className={`flex-1 rounded-md px-4 py-3 text-sm font-medium transition-colors ${
                 variant === 'danger'
                   ? 'bg-brand-red text-white hover:bg-red-600'
                   : 'bg-brand-green font-semibold text-dark hover:bg-green-400'
@@ -224,7 +224,7 @@ function ModalView({ modal, isVisible, onClose }: ModalViewProps) {
         ) : (
           <button
             onClick={() => onClose(true)}
-            className={`w-full rounded-md px-4 py-2.5 text-sm font-medium transition-colors ${
+            className={`w-full rounded-md px-4 py-3 text-sm font-medium transition-colors ${
               type === 'success'
                 ? 'bg-green-500/15 text-green-400 hover:bg-green-500/25'
                 : 'bg-red-500/15 text-red-400 hover:bg-red-500/25'

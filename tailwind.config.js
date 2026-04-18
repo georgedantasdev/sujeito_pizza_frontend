@@ -11,7 +11,7 @@ export default {
           300: '#4d4d5e',
         },
         brand: {
-          red: '#FF3F4B',
+          red: '#EE1822',
           green: '#3fffa3',
         },
       },

@@ -4,7 +4,13 @@ import { getErrorMessage } from '@/utils/getErrorMessage'
 import { useModal } from '@/contexts/ModalContext'
 import type { ApiResponse } from '@/types'
 import { orderKeys } from './types'
-import type { Order, OrderStatus, ProcessPaymentData, UpdateOrderStatusData } from './types'
+import type {
+  AddOrderItemData,
+  CreateOrderData,
+  Order,
+  OrderStatus,
+  UpdateOrderStatusData,
+} from './types'
 
 export * from './types'
 
@@ -32,6 +38,52 @@ export function useOrder(id: string) {
 }
 
 // ─── Mutations ───────────────────────────────────────────────────────
+export function useCreateOrder() {
+  const modal = useModal()
+
+  return useMutation({
+    mutationFn: (dto: CreateOrderData) =>
+      api.post<ApiResponse<Order>>('/orders', dto),
+    onError: (error) => {
+      modal.error({ title: 'Erro ao criar pedido', description: getErrorMessage(error) })
+    },
+  })
+}
+
+export function useAddOrderItem(orderId: string) {
+  const queryClient = useQueryClient()
+  const modal = useModal()
+
+  return useMutation({
+    mutationFn: (dto: AddOrderItemData) =>
+      api.post(`/orders/${orderId}/items`, dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) })
+      queryClient.invalidateQueries({ queryKey: ['tables'] })
+    },
+    onError: (error) => {
+      modal.error({ title: 'Erro ao adicionar item', description: getErrorMessage(error) })
+    },
+  })
+}
+
+export function useRemoveOrderItem(orderId: string) {
+  const queryClient = useQueryClient()
+  const modal = useModal()
+
+  return useMutation({
+    mutationFn: (itemId: string) =>
+      api.delete(`/orders/${orderId}/items/${itemId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) })
+      queryClient.invalidateQueries({ queryKey: ['tables'] })
+    },
+    onError: (error) => {
+      modal.error({ title: 'Erro ao remover item', description: getErrorMessage(error) })
+    },
+  })
+}
+
 export function useUpdateOrderStatus(id: string) {
   const queryClient = useQueryClient()
   const modal = useModal()
@@ -42,6 +94,7 @@ export function useUpdateOrderStatus(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: orderKeys.all })
       queryClient.invalidateQueries({ queryKey: orderKeys.detail(id) })
+      queryClient.invalidateQueries({ queryKey: ['tables'] })
       modal.success({ title: 'Status do pedido atualizado!' })
     },
     onError: (error) => {
@@ -50,20 +103,3 @@ export function useUpdateOrderStatus(id: string) {
   })
 }
 
-export function useProcessPayment(id: string) {
-  const queryClient = useQueryClient()
-  const modal = useModal()
-
-  return useMutation({
-    mutationFn: (dto: ProcessPaymentData) =>
-      api.patch<ApiResponse<Order>>(`/orders/${id}/payment`, dto),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: orderKeys.all })
-      queryClient.invalidateQueries({ queryKey: orderKeys.detail(id) })
-      modal.success({ title: 'Pagamento registrado com sucesso!' })
-    },
-    onError: (error) => {
-      modal.error({ title: 'Erro ao registrar pagamento', description: getErrorMessage(error) })
-    },
-  })
-}

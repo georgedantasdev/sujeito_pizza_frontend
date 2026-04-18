@@ -129,7 +129,7 @@ export function NovoProduto() {
           </div>
           <div className="space-y-3">
             {sizeFields.map((field, index) => (
-              <div key={field.id} className="flex items-start gap-3">
+              <div key={field.id} className="flex flex-col gap-3 sm:flex-row sm:items-start">
                 <div className="flex-1">
                   <Input
                     placeholder="Ex: Pequena"
@@ -151,7 +151,7 @@ export function NovoProduto() {
                   type="button"
                   onClick={() => removeSize(index)}
                   disabled={sizeFields.length === 1}
-                  className="mt-2.5 p-1 text-white/30 transition-colors hover:text-red-400 disabled:opacity-30"
+                  className="self-end p-1 text-white/30 transition-colors hover:text-red-400 disabled:opacity-30 sm:mt-2.5 sm:self-auto"
                 >
                   <Trash2 size={15} />
                 </button>

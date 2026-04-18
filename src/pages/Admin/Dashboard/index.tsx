@@ -1,8 +1,8 @@
-import { Pizza, ShoppingBag, Table2, Users } from 'lucide-react'
+import { Bike, Pizza, Table2, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useProducts } from '@/hooks/products'
 import { useTables } from '@/hooks/tables'
-import { useOrders } from '@/hooks/orders'
+import { useDeliveries } from '@/hooks/delivery'
 import { useUsers } from '@/hooks/users'
 
 interface StatCardProps {
@@ -33,12 +33,11 @@ function StatCard({ label, value, icon: Icon, to, color }: StatCardProps) {
 export function AdminDashboard() {
   const { data: products = [] } = useProducts()
   const { data: tables = [] } = useTables()
-  const { data: openOrders = [] } = useOrders('OPEN')
-  const { data: inProgressOrders = [] } = useOrders('IN_PROGRESS')
+  const { data: activeDeliveries = [] } = useDeliveries('PREPARING')
   const { data: users = [] } = useUsers()
 
   const activeProducts = products.filter((p) => p.available).length
-  const pendingOrders = openOrders.length + inProgressOrders.length
+  const occupiedTables = tables.filter((t) => t.status === 'OCCUPIED').length
   const employees = users.filter((u) => u.role === 'EMPLOYEE').length
 
   return (
@@ -57,17 +56,17 @@ export function AdminDashboard() {
           color="bg-brand-red/15 text-brand-red"
         />
         <StatCard
-          label="Mesas cadastradas"
-          value={tables.length}
+          label="Mesas ocupadas"
+          value={occupiedTables}
           icon={Table2}
           to="/admin/mesas"
           color="bg-blue-500/15 text-blue-400"
         />
         <StatCard
-          label="Pedidos em aberto"
-          value={pendingOrders}
-          icon={ShoppingBag}
-          to="/admin/pedidos"
+          label="Entregas em preparo"
+          value={activeDeliveries.length}
+          icon={Bike}
+          to="/admin/delivery"
           color="bg-yellow-500/15 text-yellow-400"
         />
         <StatCard
@@ -80,31 +79,27 @@ export function AdminDashboard() {
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Pedidos recentes */}
-        <RecentOrders />
-        {/* Status dos pedidos */}
-        <OrderStatusSummary />
+        <RecentDeliveries />
+        <OccupiedTables />
       </div>
     </div>
   )
 }
 
-function RecentOrders() {
-  const { data: orders = [], isLoading } = useOrders()
+function RecentDeliveries() {
+  const { data: deliveries = [], isLoading } = useDeliveries()
 
-  const recent = orders.slice(0, 5)
+  const recent = deliveries.slice(0, 5)
 
   const statusLabel: Record<string, string> = {
-    OPEN: 'Aberto',
-    IN_PROGRESS: 'Em preparo',
+    PREPARING: 'Em preparo',
     READY: 'Pronto',
     DELIVERED: 'Entregue',
     CANCELLED: 'Cancelado',
   }
 
   const statusColor: Record<string, string> = {
-    OPEN: 'text-yellow-400 bg-yellow-400/10',
-    IN_PROGRESS: 'text-blue-400 bg-blue-400/10',
+    PREPARING: 'text-yellow-400 bg-yellow-400/10',
     READY: 'text-brand-green bg-brand-green/10',
     DELIVERED: 'text-white/40 bg-white/5',
     CANCELLED: 'text-red-400 bg-red-400/10',
@@ -113,9 +108,9 @@ function RecentOrders() {
   return (
     <div className="rounded-xl border border-white/10 bg-dark-100 p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-semibold text-white">Pedidos recentes</h2>
-        <Link to="/admin/pedidos" className="text-xs text-brand-red hover:underline">
-          Ver todos
+        <h2 className="font-semibold text-white">Entregas recentes</h2>
+        <Link to="/admin/delivery" className="text-xs text-brand-red hover:underline">
+          Ver todas
         </Link>
       </div>
 
@@ -126,27 +121,23 @@ function RecentOrders() {
           ))}
         </div>
       ) : recent.length === 0 ? (
-        <p className="py-6 text-center text-sm text-white/30">Nenhum pedido ainda.</p>
+        <p className="py-6 text-center text-sm text-white/30">Nenhuma entrega ainda.</p>
       ) : (
         <div className="space-y-2">
-          {recent.map((order) => (
+          {recent.map((delivery) => (
             <Link
-              key={order.id}
-              to={`/admin/pedidos/${order.id}`}
+              key={delivery.id}
+              to={`/admin/delivery/${delivery.id}`}
               className="flex items-center justify-between rounded-lg px-3 py-2.5 transition-colors hover:bg-dark-200"
             >
               <div>
-                <span className="text-sm font-medium text-white">
-                  Mesa {order.table.number}
-                </span>
+                <span className="text-sm font-medium text-white">{delivery.customerName}</span>
                 <span className="ml-2 text-xs text-white/40">
-                  {order.items.length} {order.items.length === 1 ? 'item' : 'itens'}
+                  {delivery.items.length} {delivery.items.length === 1 ? 'item' : 'itens'}
                 </span>
               </div>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor[order.status]}`}
-              >
-                {statusLabel[order.status]}
+              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor[delivery.status]}`}>
+                {statusLabel[delivery.status]}
               </span>
             </Link>
           ))}
@@ -156,33 +147,44 @@ function RecentOrders() {
   )
 }
 
-function OrderStatusSummary() {
-  const { data: open = [] } = useOrders('OPEN')
-  const { data: inProgress = [] } = useOrders('IN_PROGRESS')
-  const { data: ready = [] } = useOrders('READY')
-  const { data: delivered = [] } = useOrders('DELIVERED')
-  const { data: cancelled = [] } = useOrders('CANCELLED')
+function OccupiedTables() {
+  const { data: tables = [], isLoading } = useTables()
 
-  const rows = [
-    { label: 'Abertos', count: open.length, color: 'bg-yellow-400' },
-    { label: 'Em preparo', count: inProgress.length, color: 'bg-blue-400' },
-    { label: 'Prontos', count: ready.length, color: 'bg-brand-green' },
-    { label: 'Entregues', count: delivered.length, color: 'bg-white/20' },
-    { label: 'Cancelados', count: cancelled.length, color: 'bg-red-400' },
-  ]
+  const occupied = tables.filter((t) => t.status === 'OCCUPIED')
 
   return (
     <div className="rounded-xl border border-white/10 bg-dark-100 p-6">
-      <h2 className="mb-4 font-semibold text-white">Status dos pedidos</h2>
-      <div className="space-y-3">
-        {rows.map(({ label, count, color }) => (
-          <div key={label} className="flex items-center gap-3">
-            <div className={`h-2.5 w-2.5 rounded-full ${color}`} />
-            <span className="flex-1 text-sm text-white/70">{label}</span>
-            <span className="text-sm font-semibold text-white">{count}</span>
-          </div>
-        ))}
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="font-semibold text-white">Mesas ocupadas</h2>
+        <Link to="/admin/mesas" className="text-xs text-brand-red hover:underline">
+          Ver todas
+        </Link>
       </div>
+
+      {isLoading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-10 animate-pulse rounded-md bg-dark-200" />
+          ))}
+        </div>
+      ) : occupied.length === 0 ? (
+        <p className="py-6 text-center text-sm text-white/30">Nenhuma mesa ocupada.</p>
+      ) : (
+        <div className="space-y-2">
+          {occupied.map((table) => (
+            <Link
+              key={table.id}
+              to={`/admin/mesas/${table.id}`}
+              className="flex items-center justify-between rounded-lg px-3 py-2.5 transition-colors hover:bg-dark-200"
+            >
+              <span className="text-sm font-medium text-white">Mesa {table.number}</span>
+              <span className="rounded-full bg-blue-400/10 px-2 py-0.5 text-xs font-medium text-blue-400">
+                Ocupada
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

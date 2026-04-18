@@ -21,14 +21,14 @@ export function DashboardLayout() {
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* Mobile top bar */}
-        <header className="flex items-center gap-3 border-b border-white/10 bg-dark-100 px-4 py-3 lg:hidden">
+        <header className="flex items-center gap-3 border-b border-white/10 bg-dark-100 px-4 py-3.5 lg:hidden">
           <button
             onClick={() => setSidebarOpen(true)}
             className="rounded-md p-1.5 text-white/60 transition-colors hover:bg-white/5 hover:text-white"
           >
             <Menu size={20} />
           </button>
-          <Logo className="h-5 w-auto" />
+          <Logo className="h-10 w-auto" variant="icon" />
         </header>
 
         <main className="flex flex-1 flex-col overflow-y-auto">

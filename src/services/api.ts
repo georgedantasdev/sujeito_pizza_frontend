@@ -24,7 +24,7 @@ function processQueue(error: unknown, token: string | null = null) {
 }
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = localStorage.getItem('@sujeitopizza:token')
+  const token = localStorage.getItem('@pizzaria:token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
@@ -52,7 +52,7 @@ api.interceptors.response.use(
       original._retry = true
       isRefreshing = true
 
-      const refreshToken = localStorage.getItem('@sujeitopizza:refreshToken')
+      const refreshToken = localStorage.getItem('@pizzaria:refreshToken')
 
       if (!refreshToken) {
         localStorage.clear()
@@ -68,8 +68,8 @@ api.interceptors.response.use(
           { refreshToken },
         )
 
-        localStorage.setItem('@sujeitopizza:token', data.accessToken)
-        localStorage.setItem('@sujeitopizza:refreshToken', data.refreshToken)
+        localStorage.setItem('@pizzaria:token', data.accessToken)
+        localStorage.setItem('@pizzaria:refreshToken', data.refreshToken)
         api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`
         original.headers.Authorization = `Bearer ${data.accessToken}`
 

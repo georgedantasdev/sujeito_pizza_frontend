@@ -21,7 +21,7 @@ function decodeJwt(token: string): { sub: string; email: string; role: User['rol
 }
 
 function getStoredUser(): User | null {
-  const token = localStorage.getItem('@sujeitopizza:token')
+  const token = localStorage.getItem('@pizzaria:token')
   if (!token) return null
   try {
     const payload = decodeJwt(token)
@@ -50,8 +50,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
     const payload = decodeJwt(data.accessToken)
 
-    localStorage.setItem('@sujeitopizza:token', data.accessToken)
-    localStorage.setItem('@sujeitopizza:refreshToken', data.refreshToken)
+    localStorage.setItem('@pizzaria:token', data.accessToken)
+    localStorage.setItem('@pizzaria:refreshToken', data.refreshToken)
     api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`
     setUser({ id: payload.sub, email: payload.email, role: payload.role })
 
@@ -59,8 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signOut = useCallback(() => {
-    localStorage.removeItem('@sujeitopizza:token')
-    localStorage.removeItem('@sujeitopizza:refreshToken')
+    localStorage.removeItem('@pizzaria:token')
+    localStorage.removeItem('@pizzaria:refreshToken')
     delete api.defaults.headers.common.Authorization
     setUser(null)
   }, [])

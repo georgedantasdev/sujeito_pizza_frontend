@@ -44,7 +44,7 @@ export function AdminProdutos() {
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-lg bg-dark-100" />
+            <div key={i} className="h-20 animate-pulse rounded-xl bg-dark-100" />
           ))}
         </div>
       ) : products.length === 0 ? (
@@ -55,33 +55,108 @@ export function AdminProdutos() {
           </Link>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-white/10">
-          <table className="w-full min-w-[600px] text-sm">
-            <thead>
-              <tr className="border-b border-white/10 bg-dark-100">
-                <th className="px-6 py-3 text-left font-medium text-white/50">Nome</th>
-                <th className="px-6 py-3 text-left font-medium text-white/50">Tamanhos</th>
-                <th className="px-6 py-3 text-left font-medium text-white/50">Sabores</th>
-                <th className="px-6 py-3 text-center font-medium text-white/50">Disponível</th>
-                <th className="px-6 py-3 text-right font-medium text-white/50">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product, i) => (
-                <ProductRow
-                  key={product.id}
-                  product={product}
-                  isLast={i === products.length - 1}
-                  onDelete={() => handleDelete(product.id, product.name)}
-                  isDeleting={
-                    deleteMutation.isPending && deleteMutation.variables === product.id
-                  }
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          {/* Mobile: cards */}
+          <div className="space-y-3 sm:hidden">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onDelete={() => handleDelete(product.id, product.name)}
+                isDeleting={deleteMutation.isPending && deleteMutation.variables === product.id}
+              />
+            ))}
+          </div>
+
+          {/* Desktop: tabela */}
+          <div className="hidden overflow-x-auto rounded-lg border border-white/10 sm:block">
+            <table className="w-full min-w-[600px] text-sm">
+              <thead>
+                <tr className="border-b border-white/10 bg-dark-100">
+                  <th className="px-6 py-3 text-left font-medium text-white/50">Nome</th>
+                  <th className="px-6 py-3 text-left font-medium text-white/50">Tamanhos</th>
+                  <th className="px-6 py-3 text-left font-medium text-white/50">Sabores</th>
+                  <th className="px-6 py-3 text-center font-medium text-white/50">Disponível</th>
+                  <th className="px-6 py-3 text-right font-medium text-white/50">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((product, i) => (
+                  <ProductRow
+                    key={product.id}
+                    product={product}
+                    isLast={i === products.length - 1}
+                    onDelete={() => handleDelete(product.id, product.name)}
+                    isDeleting={deleteMutation.isPending && deleteMutation.variables === product.id}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
+    </div>
+  )
+}
+
+type ProductData = ReturnType<typeof useProducts>['data'] extends (infer T)[] | undefined ? T : never
+
+function ProductCard({
+  product,
+  onDelete,
+  isDeleting,
+}: {
+  product: ProductData
+  onDelete: () => void
+  isDeleting: boolean
+}) {
+  const updateMutation = useUpdateProduct(product.id)
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-dark-100 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-medium text-white">{product.name}</p>
+          {product.description && (
+            <p className="mt-0.5 line-clamp-2 text-xs text-white/40">{product.description}</p>
+          )}
+        </div>
+        <button
+          onClick={() => updateMutation.mutate({ available: !product.available })}
+          disabled={updateMutation.isPending}
+          className="shrink-0 disabled:opacity-50"
+        >
+          {product.available ? (
+            <ToggleRight size={24} className="text-brand-green" />
+          ) : (
+            <ToggleLeft size={24} className="text-white/30" />
+          )}
+        </button>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/40">
+        <span>{product.sizes.map((s) => s.name).join(', ')}</span>
+        <span>{product.flavors.length} sabor{product.flavors.length !== 1 ? 'es' : ''}</span>
+      </div>
+
+      <div className="mt-3 flex gap-2 border-t border-white/5 pt-3">
+        <Link to={`/admin/produtos/${product.id}`} className="flex-1">
+          <Button variant="ghost" size="sm" className="w-full">
+            <Pencil size={13} />
+            Editar
+          </Button>
+        </Link>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex-1 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+          isLoading={isDeleting}
+          onClick={onDelete}
+        >
+          <Trash2 size={13} />
+          Excluir
+        </Button>
+      </div>
     </div>
   )
 }
@@ -92,7 +167,7 @@ function ProductRow({
   onDelete,
   isDeleting,
 }: {
-  product: ReturnType<typeof useProducts>['data'] extends (infer T)[] | undefined ? T : never
+  product: ProductData
   isLast: boolean
   onDelete: () => void
   isDeleting: boolean

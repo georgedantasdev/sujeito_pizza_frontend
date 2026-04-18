@@ -15,11 +15,7 @@ export interface Order {
   id: string
   status: OrderStatus
   totalPrice: string
-  discount: string
   note: string | null
-  paid: boolean
-  paidAt: string | null
-  paymentMethod: PaymentMethod | null
   table: { id: string; number: number }
   user: { id: string; name: string }
   items: OrderItem[]
@@ -32,13 +28,16 @@ export interface CreateOrderData {
   note?: string
 }
 
-export interface UpdateOrderStatusData {
-  status: OrderStatus
+export interface AddOrderItemData {
+  productId: string
+  sizeId: string
+  flavorId?: string
+  quantity: number
+  note?: string
 }
 
-export interface ProcessPaymentData {
-  paymentMethod: PaymentMethod
-  discount?: string
+export interface UpdateOrderStatusData {
+  status: OrderStatus
 }
 
 export const orderKeys = {
