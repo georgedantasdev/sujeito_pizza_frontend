@@ -55,7 +55,8 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem('@pizzaria:refreshToken')
 
       if (!refreshToken) {
-        localStorage.clear()
+        localStorage.removeItem('@pizzaria:token')
+        localStorage.removeItem('@pizzaria:refreshToken')
         if (window.location.pathname !== '/login') {
           window.location.href = '/login'
         }
@@ -77,7 +78,8 @@ api.interceptors.response.use(
         return api(original)
       } catch (refreshError) {
         processQueue(refreshError, null)
-        localStorage.clear()
+        localStorage.removeItem('@pizzaria:token')
+        localStorage.removeItem('@pizzaria:refreshToken')
         if (window.location.pathname !== '/login') {
           window.location.href = '/login'
         }

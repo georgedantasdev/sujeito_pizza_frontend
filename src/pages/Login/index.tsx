@@ -26,7 +26,7 @@ export function Login() {
     try {
       const role = await signIn(email, password)
       if (role === 'SUPER_ADMIN') navigate('/pizzerias')
-      else if (role === 'EMPLOYEE') navigate('/admin/pedidos')
+      else if (role === 'EMPLOYEE') navigate('/home')
       else navigate('/admin')
     } catch (err: unknown) {
       // Exibe o erro diretamente no campo raiz do formulário — persiste

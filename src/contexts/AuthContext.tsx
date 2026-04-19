@@ -26,7 +26,8 @@ function getStoredUser(): User | null {
   try {
     const payload = decodeJwt(token)
     if (payload.exp * 1000 <= Date.now()) {
-      localStorage.clear()
+      localStorage.removeItem('@pizzaria:token')
+      localStorage.removeItem('@pizzaria:refreshToken')
       return null
     }
     api.defaults.headers.common.Authorization = `Bearer ${token}`

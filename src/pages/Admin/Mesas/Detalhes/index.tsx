@@ -14,6 +14,7 @@ import { useProducts } from '@/hooks/products'
 import type { Product } from '@/hooks/products'
 import { getErrorMessage } from '@/utils/getErrorMessage'
 import api from '@/services/api'
+import type { ApiResponse } from '@/types'
 
 // ─── Constantes ───────────────────────────────────────────────────────
 const statusLabel: Record<string, string> = {
@@ -471,10 +472,10 @@ export function DetalhesMesa() {
     if (pendingPizzas.length === 0) return
     setIsCreatingOrders(true)
     try {
-      await Promise.all(
-        pendingPizzas.map(async (pizza) => {
-          const orderRes = await api.post<any>('/orders', { tableId: id })
-          const orderId = orderRes.data.data.id
+      for (const pizza of pendingPizzas) {
+        const orderRes = await api.post<ApiResponse<Order>>('/orders', { tableId: id })
+        const orderId = orderRes.data.data.id
+        try {
           await api.post(`/orders/${orderId}/items`, {
             productId: pizza.productId,
             sizeId: pizza.sizeId,
@@ -482,8 +483,12 @@ export function DetalhesMesa() {
             quantity: pizza.quantity,
             note: pizza.note,
           })
-        }),
-      )
+        } catch (itemErr) {
+          // Cancela o pedido vazio antes de propagar o erro
+          await api.patch(`/orders/${orderId}/status`, { status: 'CANCELLED' }).catch(() => {})
+          throw itemErr
+        }
+      }
       queryClient.invalidateQueries({ queryKey: tableKeys.all })
       setShowOrderModal(false)
       setPendingPizzas([])
@@ -525,7 +530,7 @@ export function DetalhesMesa() {
     })
     if (!ok) return
     closeMutation.mutate(
-      { id: id!, paymentMethod: undefined as any, discount: undefined },
+      { id: id!, paymentMethod: undefined, discount: undefined },
       { onSuccess: () => navigate(basePath) },
     )
   }
